@@ -38,16 +38,6 @@ class Position {
   }
 }
 
-proc readCommand(reader) {
-  var command : string;
-  var amount : int;
-
-  reader.read(command);
-  reader.read(amount);
-  
-  return (command,amount);
-}
-
 // initialize the current position
 var curr = new Position(0, 0);
 
