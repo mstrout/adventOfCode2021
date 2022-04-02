@@ -12,4 +12,4 @@ day2-position.chpl: read commands that move the submarine
 - time 11:16am-11:33am
 - used a class, but didn't run into any issues
 - part 2, started right away
-
+- finished at 11:40
