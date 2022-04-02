@@ -23,7 +23,7 @@ config const inputFile = "testin1a.txt";
 var f = open(inputFile, iomode.r);
 var reader = f.reader();
 
-// read in the first two integers
+// keep track of two depths
 var prev, curr : int;
 reader.read(prev);  writeln(prev);
 
