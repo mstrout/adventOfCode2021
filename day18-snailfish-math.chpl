@@ -50,45 +50,27 @@ var reader = f.reader();
 
 // Interface(?) tree node for storing a snailfish number
 class SnailFishNode {
-  var parent    : shared SnailFishNode? = nil;
   var left      : shared SnailFishNode? = nil;
   var right     : shared SnailFishNode? = nil;
 
   var number    : int = -1; // always non-negative in a leaf node
-
-  /* Not sure how I would do this because have to tell difference
-     between inner and outer node.
-  proc readWriteThis(infile) throws {
-    //infile <~> new ioLiteral("[") <~> 
-  }
-  */
-  /* Don't know how to do this one either.
-  proc readThis(infile) {
-    var line = infile.readline();
-    writeln(line);
-  }
-  */
 }
 
-proc 
-shared SnailFishNode.decodeFromString(parentNode : shared SnailFishNode?, str) {
-  parent = parentNode;
-  if str[0]=="[" {
-    var leftNode = new shared SnailFishNode?();
-    var rightNode = new shared SnailFishNode?();
-    var commaIdx : int = str.find(",");
-    var rightBracketIdx : int = str.find("]");
-    // YUCK: to fix this error had to cast "this"
-    // error: unresolved call 'SnailFishNode.decodeFromString(borrowed SnailFishNode, string)'
-    // FIXME: just can't do the below?
-    //error: illegal cast from borrowed SnailFishNode to shared SnailFishNode?
-    leftNode!.decodeFromString(this:shared SnailFishNode?,
-                               str(1..commaIdx-1));
-    rightNode!.decodeFromString(this:shared SnailFishNode?,
-                                str(commaIdx+1..rightBracketIdx-1));
+proc decodeFromString(str,startIdx) : (shared SnailFishNode?,int) {
+  var snailFishNum = new shared SnailFishNode?();
+  var idxPastMe = 0;
+  var idxPastRight = 0;
+  var idxPastLeft = 0;
+  if str[startIdx]=="[" {
+    (snailFishNum!.left,idxPastLeft)  = decodeFromString(str,startIdx+1);
+    (snailFishNum!.right,idxPastRight) = decodeFromString(str,idxPastLeft+1);
+    idxPastMe = idxPastRight+1;  // for right bracket
   } else {
-    number = str[0] : int;
+    // assuming individual numbers are only 1 digit
+    snailFishNum!.number = str[startIdx] : int;
+    idxPastMe = startIdx+1;
   }
+  return (snailFishNum, idxPastMe);
 }
 
 // add two SnailFishNodes and produce another one
@@ -97,11 +79,10 @@ proc addSnailFish(left : shared SnailFishNode?, right : shared SnailFishNode?) {
 }
 
 // read in the snailfish numbers
-var snailfishnum = new shared SnailFishNode?();
 var str : string;
 while reader.readline(str) {
-  snailfishnum!.decodeFromString(nil:shared SnailFishNode?,str);
-  writeln(snailfishnum);
+  var snailFishNum = decodeFromString(str,0);
+  writeln(snailFishNum);
 }
 
 // output the result
