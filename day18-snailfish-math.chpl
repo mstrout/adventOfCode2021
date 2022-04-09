@@ -109,8 +109,10 @@ proc checkAndDoExplosion(inout node : shared SnailFishNode?, depth : int,
                          inout mostRecentValueNode : shared SnailFishNode?,
                          inout rightVal : int, inout alreadyAddedRight : bool) {
 
+  writeln("checkAndDoExplosion: node = ",node!.toString());
+
   // at a leaf, which is a regular number
-  if node!.left==nil && node!.right==nil {
+  if node!.isLeaf() {
     if !alreadyExploded { mostRecentValueNode = node; }
     if alreadyExploded && !alreadyAddedRight {
       node!.number += rightVal;
@@ -118,21 +120,21 @@ proc checkAndDoExplosion(inout node : shared SnailFishNode?, depth : int,
     }
 
   // pair node not at depth 4, do a typical traversal
-  } else if depth<4 && node!.left!=nil {
+  } else if (depth<4 || alreadyExploded) && ! node!.isLeaf() {
     checkAndDoExplosion(node!.left, depth+1, alreadyExploded,
                         mostRecentValueNode, rightVal, alreadyAddedRight);
     checkAndDoExplosion(node!.right, depth+1, alreadyExploded,
                         mostRecentValueNode, rightVal, alreadyAddedRight);
 
   // pair node that should be exploded
-  } else if depth==4 {
-    // replace the pair with the number 0 
-    node = new shared SnailFishNode?(nil,nil,0);
-    alreadyExploded = true;
-
+  } else if depth==4 && !alreadyExploded {
     // grab the values from the pair that is going to explode
     var leftVal = node!.left!.number;
     rightVal = node!.right!.number;
+
+    // replace the pair with the number 0 
+    node = new shared SnailFishNode?(nil,nil,0);
+    alreadyExploded = true;
 
     // go add the left value to the last number
     if mostRecentValueNode != nil then 
@@ -144,13 +146,42 @@ proc checkAndDoExplosion(inout node : shared SnailFishNode?, depth : int,
   }
 }
 
+// Finds the first pair in the snail fish number that has a regular number
+// of 10 or greater.  Replaces that regular number with a pair of the regular
+// number divided by two and rounded down and the number divided by two and
+// rounded down.
+proc checkAndDoSplit(inout node : shared SnailFishNode?,
+                     inout alreadySplit : bool) {
+
+  writeln("checkAndDoSplit: node = ",node!.toString());
+
+  // at a leaf, which is a regular number that should be split
+  if node!.isLeaf() && node!.number>=10  && !alreadySplit {
+    alreadySplit = true;
+    node = new shared SnailFishNode?(
+              new shared SnailFishNode?(nil,nil, node!.number/2),
+              new shared SnailFishNode?(nil,nil, node!.number/2+node!.number%2),
+              -1);
+
+  // pair node not at depth 4, do a typical traversal
+  } else if !alreadySplit {
+    checkAndDoSplit(node!.left, alreadySplit);
+    checkAndDoSplit(node!.right, alreadySplit);
+
+  // Error: shouldn't get here
+  } else {
+    writeln("ERROR: didn't expect to get to this else");
+  }
+}
+
+
 // read in the snailfish numbers
 var str : string;
 while reader.readline(str) {
   var (snailFishNum,ignore) = decodeFromString(str,0);
   writeln("\nsnailFishNum = ",snailFishNum!.toString());
 
-  // explosion helper
+  // explosion helper?
   var depth = 0;
   var alreadyExploded = false;
   var valnode : shared SnailFishNode? = nil;
@@ -159,6 +190,12 @@ while reader.readline(str) {
   checkAndDoExplosion(snailFishNum,depth,alreadyExploded,valnode,
                       rightval,alreadyAddedRight);
   writeln("\nafter explode = ", snailFishNum!.toString());
+
+  // split helper?
+  var alreadySplit = false;
+  checkAndDoSplit(snailFishNum,alreadySplit);
+  writeln("\nafter split = ", snailFishNum!.toString());
+
 }
 
 // output the result
