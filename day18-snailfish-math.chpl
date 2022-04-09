@@ -55,6 +55,9 @@ class SnailFishNode {
   var number    : int = -1; // always non-negative in a leaf node
 }
 
+// Recursive function that given a string and a start index in that
+// string parses and returns the snail fish number in the string at
+// that place in the string.
 proc decodeFromString(str,startIdx) : (shared SnailFishNode?,int) {
   var snailFishNum = new shared SnailFishNode?();
   var idxPastMe = 0;
@@ -78,67 +81,74 @@ proc addSnailFish(left : shared SnailFishNode?, right : shared SnailFishNode?) {
 }
 
 
-// checks a snailfish number for a possible explosion and does the explosion
-// is expecting the root node of the tree representing the number
-proc checkAndDoExplosion(rootNode : shared SnailFishNode?) {
-  enum whichChild {left, right, root};
+// Checks a snailfish number for a possible explosion and does the explosion.
+// An explosion will replace the first pair node at a depth of 4 with
+// a regular number node with value 0.  The pair that was exploded will
+// become a leftval and rightval that are added to the nearest left number
+// node and right number nodes respectively, if such nodes exist.
+// The function might modify the passed in snail fish number.
+//
+// Recursive approach that passes around the last regular number node, 
+// whether an explosion has occurred, and the left and right regular numbers
+// from the exploded node.
+// Call on the root should be
+//      checkAndDoExplosion(root,0,alreadyExploded,valnode,
+//                          rightval,alreadyAddedRight);
+proc checkAndDoExplosion(ref node : shared SnailFishNode?, depth : int,
+                         ref alreadyExploded : bool,
+                         ref mostRecentValueNode : shared SnailFishNode?,
+                         ref rightVal : int, ref alreadyAddedRight : bool) {
 
-  var depth = 0;
-  var leftVal = 0;
-  var rightVal = 0;
-  var alreadyExploded = false;
-  var mostRecentValueNode : shared SnailFishNode? = nil; 
-
-  // left-to-right post-order traversal of the tree
-  var treeIter : shared SnailFishNode? = rootNode; // current node is root
-  var directionStack : list(enum whichChild);
-  directionStack.append(whichChild.root);          // mark node as root
-  var parentStack : list(shared SnailFishNode?);   // root doesn't have parent
-
-  // do traversal
-  while (treeIter != nil) {
-    // at a leaf, which is a regular number
-    if node!.left==nil and node!.right==nil {
-      select directStack.pop() {
-        when whichChild.root { // done with the traversal
-          treeIter = nil;
-      if parentStack.size == 0 
+  // at a leaf, which is a regular number
+  if node!.left==nil && node!.right==nil {
+    if !alreadyExploded { mostRecentValueNode = node; }
+    if alreadyExploded && !alreadyAddedRight {
+      node!.number += rightVal;
+      alreadyAddedRight = true;
     }
-    // should we explode the node treeIter is on?
-    else if depth==4 && node!.left!=nil && (leftChild || rightChild) {
-      alreadyExploded = true;
-      // grab the values from the pair that is going to explode
-      leftVal = node!.left!.number;
-      rightVal = node!.right!.number;
-      // replace the pair with the number 0 in it's parent based on
-      // whether it is a left child or a right child
-      var zeroNode = new shared SnailFishNode?(nil,nil,0);
-      var parentNode = nodeStack.pop();
-      if leftChild then parentNode!.left = zeroNode; 
-      else parentNode!.right = zeroNode;
-      
-      // go add the left value to the last number
-      if mostRecentValueNode != nil then 
-        mostRecentValueNode!.number += leftVal;
 
-      // FIXME: how do we continue the traversal at this point?
+  // pair node not at depth 4, do a typical traversal
+  } else if depth<4 && node!.left!=nil {
+    checkAndDoExplosion(node!.left, depth+1, alreadyExploded,
+                        mostRecentValueNode, rightVal, alreadyAddedRight);
+    checkAndDoExplosion(node!.right, depth+1, alreadyExploded,
+                        mostRecentValueNode, rightVal, alreadyAddedRight);
 
-  // continue the recursion if haven't found an explosion yet
-  } else if ! alreadyExploded {
+  // pair node that should be exploded
+  } else if depth==4 {
+    // replace the pair with the number 0 
+    node = new shared SnailFishNode?(nil,nil,0);
+    alreadyExploded = true;
 
-  // finish recursion if already did find the explosion
+    // grab the values from the pair that is going to explode
+    var leftVal = node!.left!.number;
+    rightVal = node!.right!.number;
+
+    // go add the left value to the last number
+    if mostRecentValueNode != nil then 
+      mostRecentValueNode!.number += leftVal;
+
+  // Error: shouldn't get here
   } else {
-  }
-
-  proc nextNodeInTree(node, isLeftChild, isRightChild, parent) {
+    writeln("ERROR: didn't expect to get to this else");
   }
 }
 
 // read in the snailfish numbers
 var str : string;
 while reader.readline(str) {
-  var snailFishNum = decodeFromString(str,0);
-  writeln(snailFishNum);
+  var (snailFishNum,ignore) = decodeFromString(str,0);
+  writeln("\nsnailFishNum = ",snailFishNum);
+
+  // explosion helper
+  var depth = 0;
+  var alreadyExploded = false;
+  var valnode : shared SnailFishNode? = nil;
+  var rightval = 0;
+  var alreadyAddedRight = false;
+  checkAndDoExplosion(snailFishNum,depth,alreadyExploded,valnode,
+                      rightval,alreadyAddedRight);
+  writeln("\nafter explode = ", snailFishNum);
 }
 
 // output the result
