@@ -16,6 +16,7 @@ day1b-countIncreases.chpl:75: error: Cannot transfer ownership from a non-nilabl
 
 Compiler bug one
 ----------------
+https://github.com/chapel-lang/chapel/issues/19613
 
 MemManageConfusion/day3-binary-compilerbug.chpl
 C02YP42DLVCG:adventOfCode2021 mstrout$ chpl day3-binary.chpl
@@ -99,3 +100,12 @@ day3-binary.chpl:57: note: other candidates are:
 $CHPL_HOME/modules/internal/ChapelDistribution.chpl:746: note:   BaseArr.next
 ```
 
+Possible confusion with loss of ownership
+-----------------------------------------
+This compiles, but since node has lost ownership, it is set to null and
+the listIter also ends up null.
+```
+  if tail!=nil then tail!.next = node;
+  tail = node;
+
+```

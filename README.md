@@ -64,4 +64,5 @@ day 18, yep this one wants a tree
   LEFTOFF: have an example where I got stuck with shared SnailFishNode?
   unmanaged?  not do this with methods?
   - started at 3:57 stopped at 4:36, apparently forget how to do recursion
+  - started at 7:49 stopped at 9
 

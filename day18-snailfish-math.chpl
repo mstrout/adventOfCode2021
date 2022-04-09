@@ -48,11 +48,10 @@ config const inputFile = "testin18.1.txt";
 var f = open(inputFile, iomode.r);
 var reader = f.reader();
 
-// Interface(?) tree node for storing a snailfish number
+// Tree node for storing a snailfish number
 class SnailFishNode {
   var left      : shared SnailFishNode? = nil;
   var right     : shared SnailFishNode? = nil;
-
   var number    : int = -1; // always non-negative in a leaf node
 }
 
@@ -76,6 +75,63 @@ proc decodeFromString(str,startIdx) : (shared SnailFishNode?,int) {
 // add two SnailFishNodes and produce another one
 proc addSnailFish(left : shared SnailFishNode?, right : shared SnailFishNode?) {
   return new shared SnailFishNode?(nil, left, right, -1);  
+}
+
+
+// checks a snailfish number for a possible explosion and does the explosion
+// is expecting the root node of the tree representing the number
+proc checkAndDoExplosion(rootNode : shared SnailFishNode?) {
+  enum whichChild {left, right, root};
+
+  var depth = 0;
+  var leftVal = 0;
+  var rightVal = 0;
+  var alreadyExploded = false;
+  var mostRecentValueNode : shared SnailFishNode? = nil; 
+
+  // left-to-right post-order traversal of the tree
+  var treeIter : shared SnailFishNode? = rootNode; // current node is root
+  var directionStack : list(enum whichChild);
+  directionStack.append(whichChild.root);          // mark node as root
+  var parentStack : list(shared SnailFishNode?);   // root doesn't have parent
+
+  // do traversal
+  while (treeIter != nil) {
+    // at a leaf, which is a regular number
+    if node!.left==nil and node!.right==nil {
+      select directStack.pop() {
+        when whichChild.root { // done with the traversal
+          treeIter = nil;
+      if parentStack.size == 0 
+    }
+    // should we explode the node treeIter is on?
+    else if depth==4 && node!.left!=nil && (leftChild || rightChild) {
+      alreadyExploded = true;
+      // grab the values from the pair that is going to explode
+      leftVal = node!.left!.number;
+      rightVal = node!.right!.number;
+      // replace the pair with the number 0 in it's parent based on
+      // whether it is a left child or a right child
+      var zeroNode = new shared SnailFishNode?(nil,nil,0);
+      var parentNode = nodeStack.pop();
+      if leftChild then parentNode!.left = zeroNode; 
+      else parentNode!.right = zeroNode;
+      
+      // go add the left value to the last number
+      if mostRecentValueNode != nil then 
+        mostRecentValueNode!.number += leftVal;
+
+      // FIXME: how do we continue the traversal at this point?
+
+  // continue the recursion if haven't found an explosion yet
+  } else if ! alreadyExploded {
+
+  // finish recursion if already did find the explosion
+  } else {
+  }
+
+  proc nextNodeInTree(node, isLeftChild, isRightChild, parent) {
+  }
 }
 
 // read in the snailfish numbers
