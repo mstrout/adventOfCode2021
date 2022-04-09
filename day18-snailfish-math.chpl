@@ -53,6 +53,16 @@ class SnailFishNode {
   var left      : shared SnailFishNode? = nil;
   var right     : shared SnailFishNode? = nil;
   var number    : int = -1; // always non-negative in a leaf node
+
+  proc isLeaf() {
+    if left==nil && right==nil && number>=0 then return true;
+    else return false;
+  }
+
+  proc toString() : string {
+    if isLeaf() then return number:string;
+    else return "[" + left!.toString() + "," + right!.toString() + "]";
+  }
 }
 
 // Recursive function that given a string and a start index in that
@@ -94,10 +104,10 @@ proc addSnailFish(left : shared SnailFishNode?, right : shared SnailFishNode?) {
 // Call on the root should be
 //      checkAndDoExplosion(root,0,alreadyExploded,valnode,
 //                          rightval,alreadyAddedRight);
-proc checkAndDoExplosion(ref node : shared SnailFishNode?, depth : int,
-                         ref alreadyExploded : bool,
-                         ref mostRecentValueNode : shared SnailFishNode?,
-                         ref rightVal : int, ref alreadyAddedRight : bool) {
+proc checkAndDoExplosion(inout node : shared SnailFishNode?, depth : int,
+                         inout alreadyExploded : bool,
+                         inout mostRecentValueNode : shared SnailFishNode?,
+                         inout rightVal : int, inout alreadyAddedRight : bool) {
 
   // at a leaf, which is a regular number
   if node!.left==nil && node!.right==nil {
@@ -138,7 +148,7 @@ proc checkAndDoExplosion(ref node : shared SnailFishNode?, depth : int,
 var str : string;
 while reader.readline(str) {
   var (snailFishNum,ignore) = decodeFromString(str,0);
-  writeln("\nsnailFishNum = ",snailFishNum);
+  writeln("\nsnailFishNum = ",snailFishNum!.toString());
 
   // explosion helper
   var depth = 0;
@@ -148,7 +158,7 @@ while reader.readline(str) {
   var alreadyAddedRight = false;
   checkAndDoExplosion(snailFishNum,depth,alreadyExploded,valnode,
                       rightval,alreadyAddedRight);
-  writeln("\nafter explode = ", snailFishNum);
+  writeln("\nafter explode = ", snailFishNum!.toString());
 }
 
 // output the result
