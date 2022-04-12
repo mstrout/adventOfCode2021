@@ -59,6 +59,10 @@ class SnailFishNode {
     else return false;
   }
 
+  proc writeThis(ch: channel) throws {
+    ch.write(toString());
+  }
+
   proc toString() : string {
     if isLeaf() then return number:string;
     else return "[" + left!.toString() + "," + right!.toString() + "]";
@@ -190,12 +194,13 @@ while reader.readline(str) {
   checkAndDoExplosion(snailFishNum,depth,alreadyExploded,valnode,
                       rightval,alreadyAddedRight);
   writeln("\nafter explode = ", snailFishNum!.toString());
+  writeln(snailFishNum!);
 
   // split helper?
   var alreadySplit = false;
   checkAndDoSplit(snailFishNum,alreadySplit);
   writeln("\nafter split = ", snailFishNum!.toString());
-
+  writeln(snailFishNum!);
 }
 
 // output the result
