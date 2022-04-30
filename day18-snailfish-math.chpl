@@ -89,9 +89,9 @@ proc decodeFromString(str,startIdx) : (shared SnailFishNode?,int) {
   return (snailFishNum, idxPastMe);
 }
 
-// add two SnailFishNodes and produce another one
+// Add two SnailFishNodes and produce another one.
 proc addSnailFish(left : shared SnailFishNode?, right : shared SnailFishNode?) {
-  return new shared SnailFishNode?(nil, left, right, -1);  
+  return new shared SnailFishNode?(left, right, -1);  
 }
 
 
@@ -113,7 +113,7 @@ proc checkAndDoExplosion(inout node : shared SnailFishNode?, depth : int,
                          inout mostRecentValueNode : shared SnailFishNode?,
                          inout rightVal : int, inout alreadyAddedRight : bool) {
 
-  writeln("checkAndDoExplosion: node = ",node!.toString());
+  //writeln("checkAndDoExplosion: node = ",node!.toString());
 
   // at a leaf, which is a regular number
   if node!.isLeaf() {
@@ -141,12 +141,11 @@ proc checkAndDoExplosion(inout node : shared SnailFishNode?, depth : int,
     alreadyExploded = true;
 
     // go add the left value to the last number
-    if mostRecentValueNode != nil then 
-      mostRecentValueNode!.number += leftVal;
+    if mostRecentValueNode != nil then mostRecentValueNode!.number += leftVal;
 
   // Error: shouldn't get here
   } else {
-    writeln("ERROR: didn't expect to get to this else");
+    writeln("ERROR(149): didn't expect to get to this else");
   }
 }
 
@@ -157,7 +156,7 @@ proc checkAndDoExplosion(inout node : shared SnailFishNode?, depth : int,
 proc checkAndDoSplit(inout node : shared SnailFishNode?,
                      inout alreadySplit : bool) {
 
-  writeln("checkAndDoSplit: node = ",node!.toString());
+  //writeln("checkAndDoSplit: node = ",node!.toString());
 
   // at a leaf, which is a regular number that should be split
   if node!.isLeaf() && node!.number>=10  && !alreadySplit {
@@ -167,43 +166,51 @@ proc checkAndDoSplit(inout node : shared SnailFishNode?,
               new shared SnailFishNode?(nil,nil, node!.number/2+node!.number%2),
               -1);
 
-  // pair node not at depth 4, do a typical traversal
-  } else if !alreadySplit {
+  // pair node do a typical traversal
+  } else if !alreadySplit && ! node!.isLeaf() {
     checkAndDoSplit(node!.left, alreadySplit);
     checkAndDoSplit(node!.right, alreadySplit);
 
-  // Error: shouldn't get here
-  } else {
-    writeln("ERROR: didn't expect to get to this else");
+  } // else should be a leaf node so we do nothing
+}
+
+// reduces a snailfish number and returns the result
+proc reduceSnailFishNum(inout num : shared SnailFishNode?) {
+  var changed = true;
+  while changed {
+    // do explosion if possible
+    var depth = 0;      var alreadyExploded = false;
+    var rightval = 0;   var alreadyAddedRight = false;
+    var valnode : shared SnailFishNode? = nil;
+    checkAndDoExplosion(num,depth,alreadyExploded,valnode,
+                        rightval,alreadyAddedRight);
+    changed = alreadyExploded;
+
+    // do a split if possible
+    var alreadySplit = false;
+    checkAndDoSplit(num,alreadySplit);
+    changed = alreadySplit || changed;
   }
 }
 
-
-// read in the snailfish numbers
+// read in the snailfish numbers and add them up
 var str : string;
+var sum: shared SnailFishNode? = nil; 
 while reader.readline(str) {
-  var (snailFishNum,ignore) = decodeFromString(str,0);
-  writeln("\nsnailFishNum = ",snailFishNum!.toString());
+  var (num,ignore) = decodeFromString(str,0);
+  writeln("\ninput num = ",num!);
 
-  // explosion helper?
-  var depth = 0;
-  var alreadyExploded = false;
-  var valnode : shared SnailFishNode? = nil;
-  var rightval = 0;
-  var alreadyAddedRight = false;
-  checkAndDoExplosion(snailFishNum,depth,alreadyExploded,valnode,
-                      rightval,alreadyAddedRight);
-  writeln("\nafter explode = ", snailFishNum!.toString());
-  writeln(snailFishNum!);
+  // going to assume initially that all input numbers are already reduced
 
-  // split helper?
-  var alreadySplit = false;
-  checkAndDoSplit(snailFishNum,alreadySplit);
-  writeln("\nafter split = ", snailFishNum!.toString());
-  writeln(snailFishNum!);
+  // add input number to sum
+  if sum!=nil then sum = addSnailFish(sum,num);
+  else sum = num;
+  writeln("\nsum = ",sum!);
+
+  // reduce the sum
+  reduceSnailFishNum(sum);
+  writeln("\nreduced sum = ",sum!);
 }
-
-// output the result
 
 // FIXME: how can I check that the whole tree is being deinitialized?
 
